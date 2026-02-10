@@ -43,14 +43,18 @@ export const createPost = async (req, res) => {
     res.status(500).json({ error: '게시글 작성 실패' });
   }
 };
-
 export const getPost = async (req, res) => {
   try {
-    const { id } = req.params; // URL에서 전달된 id (예: /api/posts/1)
+    const { id } = req.params;
+    const postId = Number(id);
 
+    // 1. 게시글 찾기 + 댓글들(comments) 같이 불러오기
     const post = await prisma.post.findUnique({
-      where: {
-        id: Number(id), // 👈 URL의 문자열 id를 숫자로 변환!
+      where: { id: postId },
+      include: {
+        comments: {
+          orderBy: { createdAt: 'asc' }, // 댓글은 등록순(오래된순) 정렬
+        },
       },
     });
 
@@ -58,12 +62,13 @@ export const getPost = async (req, res) => {
       return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
     }
 
-    // (보너스) 조회수 1 증가시키기
+    // 2. 조회수 1 증가 (업데이트된 정보를 굳이 다시 변수에 담을 필요는 없음)
     await prisma.post.update({
-      where: { id: Number(id) },
+      where: { id: postId },
       data: { view: { increment: 1 } },
     });
 
+    // 3. 이제 post 안에는 comments 배열이 포함되어 있음!
     res.json(post);
   } catch (error) {
     console.error('상세 조회 에러:', error);
