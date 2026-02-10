@@ -1,17 +1,36 @@
 import { prisma } from '../lib/prisma.js';
+import { findAndCountAll } from '../repository/posts.repository.js';
 
 // 전체 게시글 조회
 export const getPosts = async (req, res) => {
   try {
-    const posts = await prisma.post.findMany({
-      orderBy: { createdAt: 'desc' },
+    // 1. 클라이언트로부터 쿼리 파라미터 추출
+    console.log('--- 요청 들어옴 ---');
+    console.log('쿼리 파라미터:', req.query);
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'createdAt',
+      order = 'desc',
+      search = '',
+    } = req.query;
+
+    // 2. 리포지토리 함수 호출
+    const result = await findAndCountAll({
+      page,
+      limit,
+      sort,
+      order,
+      search,
     });
-    res.json(posts);
+
+    // 3. 성공 응답 (데이터와 페이지네이션 메타 정보 포함)
+    res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ error: '게시글 조회 실패' });
+    console.error('getPosts Error:', error);
+    res.status(500).json({ error: '게시글 조회 중 오류가 발생했습니다.' });
   }
 };
-
 // 게시글 생성
 export const createPost = async (req, res) => {
   try {

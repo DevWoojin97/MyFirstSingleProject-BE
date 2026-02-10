@@ -10,12 +10,27 @@ datasource db {
 
 // 3. 게시글 모델 (설계도)
 model Post {
-  id        Int      @id @default(autoincrement()) // 고유 번호 (1, 2, 3...)
-  title     String // 제목
-  content   String   @db.Text // 내용 (긴 텍스트 대응)
-  nickname  String // 작성자 닉네임
-  password  String // 수정/삭제용 비밀번호
-  view      Int      @default(0) // 조회수 (기본값 0)
-  createdAt DateTime @default(now()) // 생성일 (자동 기록)
-  updatedAt DateTime @updatedAt // 수정일 (수정 시 자동 갱신)
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  nickname  String
+  password  String
+  view      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 추가: 이 게시글에 달린 댓글들 (1:N 관계)
+  comments Comment[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  nickname  String
+  password  String
+  createdAt DateTime @default(now())
+
+  // 추가: 어느 게시글의 댓글인지 연결
+  postId Int
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
