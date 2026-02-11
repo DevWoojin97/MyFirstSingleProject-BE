@@ -11,3 +11,5 @@ export const postSchema = z.object({
 });
 
 export const updateSchema = postSchema.omit({ nickname: true });
+
+export const deleteSchema = postSchema.pick({ password: true });

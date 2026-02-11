@@ -1,6 +1,10 @@
 import { prisma } from '../lib/prisma.js';
 import { findAndCountAll } from '../repository/posts.repository.js';
-import { postSchema, updateSchema } from '../schemas/postSchema.js';
+import {
+  deleteSchema,
+  postSchema,
+  updateSchema,
+} from '../schemas/postSchema.js';
 
 // 전체 게시글 조회
 export const getPosts = async (req, res) => {
@@ -102,13 +106,27 @@ export const getPost = async (req, res) => {
 export const deletePost = async (req, res) => {
   try {
     const { id } = req.params;
+    const postId = Number(id);
     const { password } = req.body;
 
     console.log(`삭제 요청 발생! ID: ${id}, 입력비번: ${password}`);
+    if (isNaN(postId)) {
+      return res
+        .status(400)
+        .json({ message: '유효하지 않은 게시글 ID입니다.' });
+    }
+
+    const validation = deleteSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      return res.status(400).json({
+        message: validation.error.errors[0].message,
+      });
+    }
 
     // 1. 해당 게시글이 있는지 먼저 확인
     const post = await prisma.post.findUnique({
-      where: { id: Number(id) }, // 반드시 숫자로 변환
+      where: { id: postId }, // 반드시 숫자로 변환
     });
 
     if (!post) {
