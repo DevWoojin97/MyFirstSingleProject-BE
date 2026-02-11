@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { findAndCountAll } from '../repository/posts.repository.js';
+import { postSchema } from '../schemas/postSchema.js';
 
 // 전체 게시글 조회
 export const getPosts = async (req, res) => {
@@ -33,13 +34,21 @@ export const getPosts = async (req, res) => {
 };
 // 게시글 생성
 export const createPost = async (req, res) => {
+  const validation = postSchema.safeParse(req.body);
+
+  if (!validation.success) {
+    return res.status(400).json({
+      message: validation.error.errors[0].message,
+    });
+  }
+  const { title, content, nickname, password } = validation.data;
   try {
-    const { title, content, nickname, password } = req.body;
     const newPost = await prisma.post.create({
       data: { title, content, nickname, password },
     });
     res.status(201).json(newPost);
   } catch (error) {
+    console.error('DB Error:', error);
     res.status(500).json({ error: '게시글 작성 실패' });
   }
 };
