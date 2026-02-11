@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { findAndCountAll } from '../repository/posts.repository.js';
-import { postSchema } from '../schemas/postSchema.js';
+import { postSchema, updateSchema } from '../schemas/postSchema.js';
 
 // 전체 게시글 조회
 export const getPosts = async (req, res) => {
@@ -60,9 +60,23 @@ export const getPost = async (req, res) => {
     // 1. 게시글 찾기 + 댓글들(comments) 같이 불러오기
     const post = await prisma.post.findUnique({
       where: { id: postId },
-      include: {
+
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        nickname: true,
+        view: true, // 조회수도 보여줘야 하니 추가
+        createdAt: true,
         comments: {
-          orderBy: { createdAt: 'asc' }, // 댓글은 등록순(오래된순) 정렬
+          orderBy: { createdAt: 'asc' },
+          select: {
+            id: true,
+            content: true,
+            nickname: true,
+            createdAt: true,
+            // password: false (댓글 비번도 숨기기)
+          },
         },
       },
     });
@@ -124,28 +138,54 @@ export const deletePost = async (req, res) => {
   }
 };
 
-//4. 게시글 수정 로직
-
 export const updatePost = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, password } = req.body;
+    const postId = Number(id);
 
-    const post = await prisma.post.findUnique({ where: { id: Number(id) } });
-
-    if (!post) return res.status(404).json({ error: '글을 찾을 수 없습니다.' });
-
-    if (post.password !== password) {
-      return res.status(401).json({ error: '비밀번호가 틀렸습니다.' });
+    // 1. ID 유효성 검사 (가장 먼저!)
+    if (isNaN(postId)) {
+      return res
+        .status(400)
+        .json({ message: '유효하지 않은 게시글 ID입니다.' });
     }
 
+    const validation = updateSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      return res.status(400).json({
+        message: validation.error.errors[0].message,
+      });
+    }
+
+    // 검증된 데이터 가져오기
+    const { title, content, password } = validation.data;
+
+    // 3. 게시글 존재 확인
+    const post = await prisma.post.findUnique({ where: { id: postId } });
+
+    if (!post) {
+      return res.status(404).json({ message: '글을 찾을 수 없습니다.' });
+    }
+
+    // 4. 비밀번호 확인 (서버측 최종 검문)
+    if (post.password !== password) {
+      return res.status(401).json({ message: '비밀번호가 틀렸습니다.' });
+    }
+
+    // 5. 실제 수정 업데이트
     const updatedPost = await prisma.post.update({
-      where: { id: Number(id) },
-      data: { title, content },
+      where: { id: postId },
+      data: {
+        title: title.trim(),
+        content: content.trim(),
+      },
     });
+
     res.json(updatedPost);
   } catch (error) {
-    res.status(500).json({ error: '수정 실패' });
+    console.error('Update Error:', error);
+    res.status(500).json({ message: '수정 실패' });
   }
 };
 
