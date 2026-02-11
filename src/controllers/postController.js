@@ -139,3 +139,45 @@ export const updatePost = async (req, res) => {
     res.status(500).json({ error: '수정 실패' });
   }
 };
+
+// 댓글 작성 컨트롤러
+export const createComment = async (req, res) => {
+  try {
+    const { postId } = req.params; // 라우터에서 :postId로 넘겨준 값
+    const { nickname, password, content } = req.body; // 프론트에서 보낸 데이터
+
+    // DB에 댓글 생성
+    const newComment = await prisma.comment.create({
+      data: {
+        postId: Number(postId),
+        nickname,
+        password,
+        content,
+      },
+    });
+
+    res.status(201).json(newComment);
+  } catch (error) {
+    console.error('댓글 등록 에러:', error);
+    res.status(500).json({ error: '댓글 등록 중 서버 에러가 발생했습니다.' });
+  }
+};
+
+// 비밀번호 검증 모달 로직
+export const verifyPassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    const post = await prisma.post.findUnique({
+      where: { id: Number(id) },
+    });
+    if (post.password === password) {
+      return res.status(200).json({ message: '비밀번호가 일치합니다.' });
+    } else {
+      return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
