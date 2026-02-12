@@ -30,6 +30,9 @@ model Comment {
   password  String
   createdAt DateTime @default(now())
 
+  isDeleted Boolean   @default(false) // 삭제 여부 상태값
+  deletedAt DateTime? // 삭제된 시점 (선택 사항이지만 관리용으로 좋음)
+
   // 추가: 어느 게시글의 댓글인지 연결
   postId Int
   post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
