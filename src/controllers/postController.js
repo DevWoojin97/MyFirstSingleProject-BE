@@ -74,6 +74,7 @@ export const getPost = async (req, res) => {
         view: true, // 조회수도 보여줘야 하니 추가
         createdAt: true,
         comments: {
+          where: { isDeleted: false },
           orderBy: { createdAt: 'asc' },
           select: {
             id: true,
@@ -93,7 +94,7 @@ export const getPost = async (req, res) => {
     // 2. 조회수 1 증가 (업데이트된 정보를 굳이 다시 변수에 담을 필요는 없음)
     await prisma.post.update({
       where: { id: postId },
-      data: { view: { increment: 1 } },
+      data: { view: { increment: 1 } }, 
     });
 
     // 3. 이제 post 안에는 comments 배열이 포함되어 있음!
@@ -249,6 +250,7 @@ export const deleteComment = async (req, res) => {
   const { id } = req.params;
   const commentId = Number(id);
   const { password } = req.body;
+  console.log('받은 ID:', id, '받은 비번:', password);
 
   // 3. ID가 숫자가 아니거나 존재하지 않는지 확인합니다.
   if (isNaN(commentId)) {
@@ -261,7 +263,7 @@ export const deleteComment = async (req, res) => {
   }
   try {
     const comment = await prisma.comment.findUnique({
-      where: { id: Number(id) },
+      where: { id: commentId },
     });
 
     if (!comment) {
@@ -273,12 +275,12 @@ export const deleteComment = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, comment.password);
-
+    console.log('비밀번호 일치 여부:', isMatch);
     if (!isMatch) {
       return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
     }
     await prisma.comment.update({
-      where: { id: commnetId },
+      where: { id: commentId },
       data: {
         isDeleted: true,
         deletedAt: new Date(),
@@ -286,6 +288,7 @@ export const deleteComment = async (req, res) => {
     });
     res.status(200).json({ message: '댓글이 삭제되었습니다.' });
   } catch (error) {
+    console.error('❌ 진짜 에러 원인:', error);
     res
       .status(500)
       .json({ message: '서버 오류가 발생했습니다.', error: error.message });
