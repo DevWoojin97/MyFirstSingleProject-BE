@@ -7,7 +7,8 @@
     "dev": "nodemon --env-file=./env/.env.development src/server.js",
     "prisma:migrate": "dotenv -e ./env/.env.development -- npx prisma migrate dev",
     "prisma:studio": "dotenv -e ./env/.env.development -- npx prisma studio",
-    "prisma:generate": "dotenv -e ./env/.env.development -- npx prisma generate"
+    "prisma:generate": "dotenv -e ./env/.env.development -- npx prisma generate",
+    "prisma:deploy": "npx prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",
