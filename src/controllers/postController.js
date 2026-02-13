@@ -13,13 +13,12 @@ export const getPosts = async (req, res) => {
     // 1. 클라이언트로부터 쿼리 파라미터 추출
     console.log('--- 요청 들어옴 ---');
     console.log('쿼리 파라미터:', req.query);
-    const {
-      page = 1,
-      limit = 10,
-      sort = 'createdAt',
-      order = 'desc',
-      search = '',
-    } = req.query;
+    // 1. 숫자 형변환 추가 (404/500 에러의 주범 예방)
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const sort = req.query.sort || 'createdAt';
+    const order = req.query.order || 'desc';
+    const search = req.query.search || '';
 
     // 2. 리포지토리 함수 호출
     const result = await findAndCountAll({
@@ -94,7 +93,7 @@ export const getPost = async (req, res) => {
     // 2. 조회수 1 증가 (업데이트된 정보를 굳이 다시 변수에 담을 필요는 없음)
     await prisma.post.update({
       where: { id: postId },
-      data: { view: { increment: 1 } }, 
+      data: { view: { increment: 1 } },
     });
 
     // 3. 이제 post 안에는 comments 배열이 포함되어 있음!
