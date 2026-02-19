@@ -120,8 +120,11 @@ export const deletePost = async (req, res) => {
     const validation = deleteSchema.safeParse(req.body);
 
     if (!validation.success) {
+      const errorMessage =
+        validation.error?.errors?.[0]?.message ||
+        '비밀번호는 최소 4자리에서 최대 8자리입니다.';
       return res.status(400).json({
-        message: validation.error.errors[0].message,
+        message: errorMessage,
       });
     }
 
