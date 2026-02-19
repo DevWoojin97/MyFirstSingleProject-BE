@@ -8,8 +8,11 @@ const PORT = process.env.PORT || 5050;
 
 app.use(
   cors({
-    origin: ['https://woojinproject.vercel.app'], // 나중에 배포 주소 추가
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // ✨ PATCH를 추가하세요!
+    origin: [
+      'http://localhost:5173', // 로컬 프론트
+      'https://woojinproject.vercel.app', //배포 프론트
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   }),
 );
