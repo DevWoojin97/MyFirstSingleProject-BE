@@ -32,6 +32,15 @@ export async function findAndCountAll({ page, limit, sort, order, search }) {
         orderBy: { [sortBy]: sortOrder },
         take,
         skip,
+        select: {
+          id: true,
+          title: true,
+          nickname: true,
+          hasImage: true, // 이미지 아이콘 표시용
+          commentCount: true, // 댓글수 표시용
+          view: true,
+          createdAt: true,
+        },
       }),
       prisma.post.count({ where }),
     ]);
@@ -48,6 +57,7 @@ export async function findAndCountAll({ page, limit, sort, order, search }) {
     throw error;
   }
 }
+
 export async function findPostById(id) {
   try {
     return await prisma.post.findUnique({
