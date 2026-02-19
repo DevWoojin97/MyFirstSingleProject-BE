@@ -24,6 +24,7 @@ model Post {
 
   // 추가: 이 게시글에 달린 댓글들 (1:N 관계)
   comments Comment[]
+  images   Image[] // 🔥 추가: 게시글에 포함된 이미지들
 }
 
 model Comment {
@@ -37,6 +38,17 @@ model Comment {
   deletedAt DateTime? // 삭제된 시점 (선택 사항이지만 관리용으로 좋음)
 
   // 추가: 어느 게시글의 댓글인지 연결
+  postId Int
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  url       String // 이미지 접근 주소 (예: /uploads/abc.jpg)
+  filename  String // 저장된 파일명 (서버 관리용)
+  createdAt DateTime @default(now())
+
+  // 어느 게시글에 포함된 이미지인지 연결
   postId Int
   post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 }

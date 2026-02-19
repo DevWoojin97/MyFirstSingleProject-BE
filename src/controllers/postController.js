@@ -341,3 +341,28 @@ export const verifyPassword = async (req, res) => {
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
+
+
+export const uploadImage = async (req, res) => {
+  try {
+    // 1. 파일 존재 여부 확인 (multer가 req.file에 파일을 담아줍니다)
+    if (!req.file) {
+      return res.status(400).json({ message: '업로드할 파일이 없습니다.' });
+    }
+
+    // 2. 이미지 URL 생성
+    // 프론트엔드에서 접근할 수 있는 경로를 만들어줍니다.
+    const imageUrl = `http://localhost:5050/uploads/${req.file.filename}`;
+
+    // 3. 성공 응답
+    res.status(200).json({
+      url: imageUrl,
+      filename: req.file.filename,
+    });
+  } catch (error) {
+    console.error('Image Upload Error:', error);
+    res
+      .status(500)
+      .json({ message: '이미지 업로드 중 서버 오류가 발생했습니다.' });
+  }
+};
