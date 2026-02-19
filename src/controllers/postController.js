@@ -227,17 +227,30 @@ export const createComment = async (req, res) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10); // 비밀번호 암호화
 
-    // DB에 댓글 생성
-    const newComment = await prisma.comment.create({
-      data: {
-        postId,
-        nickname,
-        password: hashedPassword,
-        content,
-      },
+    const result = await prisma.$transaction(async (tx) => {
+      // DB에 댓글 생성
+      const newComment = await tx.comment.create({
+        data: {
+          postId,
+          nickname,
+          password: hashedPassword,
+          content,
+        },
+      });
+
+      await tx.post.update({
+        where: { id: postId },
+        data: {
+          commentCount: {
+            increment: 1,
+          },
+        },
+      });
+
+      return newComment;
     });
 
-    res.status(201).json(newComment);
+    res.status(201).json(result);
   } catch (error) {
     console.error('댓글 등록 에러:', error);
     res.status(500).json({ message: '댓글 등록 중 서버 에러가 발생했습니다.' });
@@ -278,13 +291,27 @@ export const deleteComment = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
     }
-    await prisma.comment.update({
-      where: { id: commentId },
-      data: {
-        isDeleted: true,
-        deletedAt: new Date(),
-      },
+
+    await prisma.$transaction(async (tx) => {
+      await tx.comment.update({
+        where: { id: commentId },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+        },
+      });
+
+      // (B) 해당 게시글의 commentCount를 1 감소
+      await tx.post.update({
+        where: { id: comment.postId },
+        data: {
+          commentCount: {
+            decrement: 1,
+          },
+        },
+      });
     });
+
     res.status(200).json({ message: '댓글이 삭제되었습니다.' });
   } catch (error) {
     res

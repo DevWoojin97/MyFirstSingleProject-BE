@@ -19,6 +19,9 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // 🔥 추가: 역정규화를 위한 댓글 카운트 컬럼
+  commentCount Int @default(0)
+
   // 추가: 이 게시글에 달린 댓글들 (1:N 관계)
   comments Comment[]
 }
