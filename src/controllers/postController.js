@@ -87,7 +87,7 @@ export const getPost = async (req, res) => {
     });
 
     if (!post) {
-      return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+      return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
     }
 
     // 2. 조회수 1 증가 (업데이트된 정보를 굳이 다시 변수에 담을 필요는 없음)
@@ -100,7 +100,7 @@ export const getPost = async (req, res) => {
     res.json(post);
   } catch (error) {
     console.error('상세 조회 에러:', error);
-    res.status(500).json({ error: '게시글 상세 조회 실패' });
+    res.status(500).json({ message: '게시글 상세 조회 실패' });
   }
 };
 
@@ -287,7 +287,6 @@ export const deleteComment = async (req, res) => {
     });
     res.status(200).json({ message: '댓글이 삭제되었습니다.' });
   } catch (error) {
-    console.error('❌ 진짜 에러 원인:', error);
     res
       .status(500)
       .json({ message: '서버 오류가 발생했습니다.', error: error.message });
