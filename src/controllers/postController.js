@@ -342,7 +342,6 @@ export const verifyPassword = async (req, res) => {
   }
 };
 
-
 export const uploadImage = async (req, res) => {
   try {
     // 1. 파일 존재 여부 확인 (multer가 req.file에 파일을 담아줍니다)
@@ -351,9 +350,10 @@ export const uploadImage = async (req, res) => {
     }
 
     // 2. 이미지 URL 생성
-    // 프론트엔드에서 접근할 수 있는 경로를 만들어줍니다.
-    const imageUrl = `http://localhost:5050/uploads/${req.file.filename}`;
+    // .env에 적은 BACKEND_URL을 가져오고, 없으면 기본값으로 현재 호스트 사용
+    const baseUrl = process.env.BACKEND_URL || `http://${req.get('host')}`;
 
+    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
     // 3. 성공 응답
     res.status(200).json({
       url: imageUrl,
