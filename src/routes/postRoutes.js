@@ -10,7 +10,7 @@ import {
   deleteComment,
   uploadImage,
 } from '../controllers/postController.js';
-import { upload } from '../middlewares/uploadMiddleware.js';
+import { upload } from '../middlewares/multer.js';
 
 const router = express.Router();
 // --- 게시글 관련 ---

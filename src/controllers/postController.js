@@ -1,5 +1,7 @@
+import { createClient } from '@supabase/supabase-js';
 import { prisma } from '../lib/prisma.js';
 import { findAndCountAll } from '../repository/posts.repository.js';
+import path from 'path';
 import {
   deleteSchema,
   postSchema,
@@ -352,27 +354,36 @@ export const verifyPassword = async (req, res) => {
   }
 };
 
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY,
+);
+
 export const uploadImage = async (req, res) => {
   try {
-    // 1. 파일 존재 여부 확인 (multer가 req.file에 파일을 담아줍니다)
-    if (!req.file) {
-      return res.status(400).json({ message: '업로드할 파일이 없습니다.' });
-    }
+    if (!req.file) return res.status(400).json({ message: '파일이 없습니다.' });
 
-    // 2. 이미지 URL 생성
-    // .env에 적은 BACKEND_URL을 가져오고, 없으면 기본값으로 현재 호스트 사용
-    const baseUrl = process.env.BACKEND_URL || `http://${req.get('host')}`;
+    const file = req.file;
+    const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
 
-    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
-    // 3. 성공 응답
-    res.status(200).json({
-      url: imageUrl,
-      filename: req.file.filename,
-    });
+    // Supabase Storage에 업로드 (버킷 이름 확인!)
+    const { data, error } = await supabase.storage
+      .from('post_images')
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+      });
+
+    if (error) throw error;
+
+    // 공용 URL 생성
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('post_images').getPublicUrl(fileName);
+
+    // 프론트엔드 에디터(ReactQuill)로 URL 반환
+    res.status(200).json({ url: publicUrl });
   } catch (error) {
-    console.error('Image Upload Error:', error);
-    res
-      .status(500)
-      .json({ message: '이미지 업로드 중 서버 오류가 발생했습니다.' });
+    console.error(error);
+    res.status(500).json({ message: '이미지 업로드 실패' });
   }
 };
