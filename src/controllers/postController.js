@@ -33,7 +33,7 @@ export const getPosts = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     console.error('getPosts Error:', error);
-    res.status(500).json({ error: '게시글 조회 중 오류가 발생했습니다.' });
+    res.status(500).json({ message: '게시글 조회 중 오류가 발생했습니다.' });
   }
 };
 // 게시글 생성
@@ -53,7 +53,7 @@ export const createPost = async (req, res) => {
     res.status(201).json(newPost);
   } catch (error) {
     console.error('DB Error:', error);
-    res.status(500).json({ error: '게시글 작성 실패' });
+    res.status(500).json({ message: '게시글 작성 실패' });
   }
 };
 export const getPost = async (req, res) => {
@@ -132,7 +132,7 @@ export const deletePost = async (req, res) => {
 
     if (!post) {
       console.log('에러: 해당 ID의 게시글을 찾을 수 없음');
-      return res.status(404).json({ error: '존재하지 않는 게시글입니다.' });
+      return res.status(404).json({ message: '존재하지 않는 게시글입니다.' });
     }
 
     // 2. 비밀번호 비교
@@ -140,7 +140,7 @@ export const deletePost = async (req, res) => {
       console.log(
         `비번 불일치! DB비번: ${post.password}, 입력비번: ${password}`,
       );
-      return res.status(401).json({ error: '비밀번호가 일치하지 않습니다.' });
+      return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
     }
 
     // 3. 실제 삭제 수행
@@ -153,7 +153,7 @@ export const deletePost = async (req, res) => {
   } catch (error) {
     // 터미널에 에러의 진짜 원인을 찍어줍니다.
     console.error('백엔드 삭제 로직 에러 상세:', error);
-    res.status(500).json({ error: '서버 내부 오류로 삭제 실패' });
+    res.status(500).json({ message: '서버 내부 오류로 삭제 실패' });
   }
 };
 
@@ -217,13 +217,13 @@ export const createComment = async (req, res) => {
     const { nickname, password, content } = req.body; // 프론트에서 보낸 데이터
     // 1. postId가 정상적인 숫자인지 체크
     if (isNaN(postId)) {
-      return res.status(400).json({ error: '유효한 게시글 ID가 아닙니다.' });
+      return res.status(400).json({ message: '유효한 게시글 ID가 아닙니다.' });
     }
     // 2. 필수 값 체크 (선택사항이지만 추천)
     if (!nickname || !password || !content) {
       return res
         .status(400)
-        .json({ error: '닉네임, 비밀번호, 내용을 모두 입력해주세요.' });
+        .json({ message: '닉네임, 비밀번호, 내용을 모두 입력해주세요.' });
     }
     const hashedPassword = await bcrypt.hash(password, 10); // 비밀번호 암호화
 
@@ -240,7 +240,7 @@ export const createComment = async (req, res) => {
     res.status(201).json(newComment);
   } catch (error) {
     console.error('댓글 등록 에러:', error);
-    res.status(500).json({ error: '댓글 등록 중 서버 에러가 발생했습니다.' });
+    res.status(500).json({ message: '댓글 등록 중 서버 에러가 발생했습니다.' });
   }
 };
 
