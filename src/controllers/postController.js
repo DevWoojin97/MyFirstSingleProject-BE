@@ -40,15 +40,21 @@ export const getPosts = async (req, res) => {
 export const createPost = async (req, res) => {
   const validation = postSchema.safeParse(req.body);
 
+  // 데이터 유효성 검사
   if (!validation.success) {
     return res.status(400).json({
       message: validation.error.errors[0].message,
     });
   }
+  // 검증된 데이터 꺼내기
   const { title, content, nickname, password } = validation.data;
+
+  // content를 확인해서 이미지 포함 여부 결정 (여기서 직접 생성)
+  const hasImage = content.includes('<img');
   try {
+    //DB에 저장할 때 hasImage 필드도 포함
     const newPost = await prisma.post.create({
-      data: { title, content, nickname, password },
+      data: { title, content, nickname, password, hasImage },
     });
     res.status(201).json(newPost);
   } catch (error) {
@@ -56,6 +62,7 @@ export const createPost = async (req, res) => {
     res.status(500).json({ message: '게시글 작성 실패' });
   }
 };
+
 export const getPost = async (req, res) => {
   try {
     const { id } = req.params;
@@ -183,6 +190,8 @@ export const updatePost = async (req, res) => {
     // 검증된 데이터 가져오기
     const { title, content, password } = validation.data;
 
+    const hasImage = content.includes('<img');
+
     // 3. 게시글 존재 확인
     const post = await prisma.post.findUnique({ where: { id: postId } });
 
@@ -201,6 +210,7 @@ export const updatePost = async (req, res) => {
       data: {
         title: title.trim(),
         content: content.trim(),
+        hasImage,
       },
     });
 

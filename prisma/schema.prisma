@@ -25,6 +25,7 @@ model Post {
   // 추가: 이 게시글에 달린 댓글들 (1:N 관계)
   comments Comment[]
   images   Image[] // 🔥 추가: 게시글에 포함된 이미지들
+  hasImage Boolean   @default(false) // 게시글에 이미지 있는지 없는지 확인
 }
 
 model Comment {
