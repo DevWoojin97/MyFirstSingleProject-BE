@@ -5,12 +5,14 @@ import {
   getPost,
   deletePost,
   updatePost,
-  createComment,
   verifyPassword,
-  deleteComment,
-  uploadImage,
 } from '../controllers/postController.js';
 import { upload } from '../middlewares/multer.js';
+import {
+  createComment,
+  deleteComment,
+} from '../controllers/commentController.js';
+import { uploadImage } from '../controllers/imageController.js';
 
 const router = express.Router();
 // --- 게시글 관련 ---

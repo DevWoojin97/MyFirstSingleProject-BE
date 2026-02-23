@@ -8,6 +8,24 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+//유저 모델
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String // 암호화된 비밀번호
+  nickname  String   @unique
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+
+  posts    Post[]
+  comments Comment[]
+}
+
 // 3. 게시글 모델 (설계도)
 model Post {
   id        Int      @id @default(autoincrement())
@@ -26,6 +44,9 @@ model Post {
   comments Comment[]
   images   Image[] // 🔥 추가: 게시글에 포함된 이미지들
   hasImage Boolean   @default(false) // 게시글에 이미지 있는지 없는지 확인
+  // [추가] 회원과 연결 (선택사항 ? 를 붙여서 익명글일 땐 비워둠)
+  authorId Int?
+  author   User?     @relation(fields: [authorId], references: [id])
 }
 
 model Comment {
@@ -40,7 +61,9 @@ model Comment {
 
   // 추가: 어느 게시글의 댓글인지 연결
   postId Int
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post   Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User? @relation(fields: [userId], references: [id])
+  userId Int?
 }
 
 model Image {
