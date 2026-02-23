@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Post" ALTER COLUMN "nickname" DROP NOT NULL,
+ALTER COLUMN "password" DROP NOT NULL;

@@ -10,11 +10,12 @@ import {
 import { upload } from '../middlewares/multer.js';
 
 import { uploadImage } from '../controllers/imageController.js';
+import { authenticateToken } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 // --- 게시글 관련 ---
 router.get('/', getPosts); // GET /api/posts
-router.post('/', createPost); // POST /api/posts
+router.post('/', authenticateToken, createPost); // POST /api/posts
 router.get('/:id', getPost);
 router.delete('/:id', deletePost);
 router.patch('/:id', updatePost);

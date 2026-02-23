@@ -37,9 +37,10 @@ export const getPosts = async (req, res) => {
 };
 // 게시글 생성
 export const createPost = async (req, res) => {
-  const validation = postSchema.safeParse(req.body);
-
+  console.log('1. 요청 본문(body):', req.body);
+  console.log('2. 미들웨어가 준 유저(req.user):', req.user);
   // 데이터 유효성 검사
+  const validation = postSchema.safeParse(req.body);
   if (!validation.success) {
     return res.status(400).json({
       message: validation.error.errors[0].message,
@@ -50,10 +51,36 @@ export const createPost = async (req, res) => {
 
   // content를 확인해서 이미지 포함 여부 결정 (여기서 직접 생성)
   const hasImage = content.includes('<img');
+
   try {
+    // 공통 데이터 설정
+    const postData = {
+      title,
+      content,
+      hasImage,
+      nickname: nickname || null,
+      password: password || null,
+    };
+
+    // 💡 분기 처리 핵심!
+    if (req.user) {
+      console.log('3. 회원 로직 진입! ID:', req.user.userId);
+      // [회원일 때] : 토큰에서 나온 ID를 authorId에 연결
+      postData.authorId = req.user.userId;
+      // 회원은 익명 닉네임/비번이 필요 없으므로 비워두거나 회원 닉네임을 넣음
+      postData.nickname = req.user.nickname || '회원';
+      postData.password = ''; // 회원 글은 비번 필요 없음 (회원 정보로 삭제하니까)
+    } else {
+      // [익명일 때] : 프론트에서 보낸 닉네임과 비번 저장
+      postData.nickname = nickname;
+      postData.password = password;
+      // authorId는 Prisma 스키마에서 Int? (Optional)여야 합니다.
+    }
+
     //DB에 저장할 때 hasImage 필드도 포함
+    //핵심 로직 : 로그인 유저인가? 익명 유저인가?
     const newPost = await prisma.post.create({
-      data: { title, content, nickname, password, hasImage },
+      data: postData,
     });
     res.status(201).json(newPost);
   } catch (error) {
