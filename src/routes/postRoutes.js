@@ -8,10 +8,7 @@ import {
   verifyPassword,
 } from '../controllers/postController.js';
 import { upload } from '../middlewares/multer.js';
-import {
-  createComment,
-  deleteComment,
-} from '../controllers/commentController.js';
+
 import { uploadImage } from '../controllers/imageController.js';
 
 const router = express.Router();
@@ -22,9 +19,6 @@ router.get('/:id', getPost);
 router.delete('/:id', deletePost);
 router.patch('/:id', updatePost);
 router.post('/:id/verify', verifyPassword); // 비밀번호 검증 모달
-// --- 댓글 관련 ---
-router.post('/:postId/comments', createComment); // 댓글 생성
-router.patch('/:comments/:id', deleteComment); // 댓글 삭제
 
 // --- 이미지 업로드 관련 ---
 // 1. upload.single('image') 미들웨어가 먼저 파일을 저장하고

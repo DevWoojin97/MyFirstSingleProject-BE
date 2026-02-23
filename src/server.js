@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import postRoutes from './routes/postRoutes.js';
+import commentRoutes from './routes/commentRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -22,6 +23,7 @@ app.use(express.json());
 
 // 라우터 연결
 app.use('/api/posts', postRoutes);
+app.use('/api/posts', commentRoutes);
 
 app.listen(PORT, () => {
   console.log(`서버 실행 중: http://localhost:${PORT}`);
