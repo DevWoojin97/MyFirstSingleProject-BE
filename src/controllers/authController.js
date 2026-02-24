@@ -79,7 +79,7 @@ export const login = async (req, res) => {
         userId: user.id,
         role: user.role,
       },
-      'your_secret_key', // 나중에 .env 파일로 옮기는 게 좋습니다.
+      process.env.JWT_SECRET,
       { expiresIn: '1d' }, // 1일 동안 유지되는 입장권
     );
 

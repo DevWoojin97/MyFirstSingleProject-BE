@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 // 로그인 때 썼던 비밀 키와 똑같아야 합니다!
-const JWT_SECRET = 'your_secret_key';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export const authenticateToken = (req, res, next) => {
   //1. 요청 헤더에서 'authorization' 항목을 확인합니다.
