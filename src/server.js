@@ -14,6 +14,7 @@ app.use(
       'http://localhost:5173', // 로컬 프론트
       'https://woojinproject.vercel.app', //배포 프론트
     ],
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   }),

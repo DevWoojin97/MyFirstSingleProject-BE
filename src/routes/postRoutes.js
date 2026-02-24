@@ -17,8 +17,8 @@ const router = express.Router();
 router.get('/', getPosts); // GET /api/posts
 router.post('/', authenticateToken, createPost); // POST /api/posts
 router.get('/:id', getPost);
-router.delete('/:id', deletePost);
-router.patch('/:id', updatePost);
+router.delete('/:id', authenticateToken, deletePost);
+router.patch('/:id', authenticateToken, updatePost);
 router.post('/:id/verify', verifyPassword); // 비밀번호 검증 모달
 
 // --- 이미지 업로드 관련 ---

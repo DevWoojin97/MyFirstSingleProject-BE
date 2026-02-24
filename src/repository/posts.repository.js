@@ -40,6 +40,7 @@ export async function findAndCountAll({ page, limit, sort, order, search }) {
           commentCount: true, // 댓글수 표시용
           view: true,
           createdAt: true,
+          authorId: true,
         },
       }),
       prisma.post.count({ where }),
@@ -62,12 +63,20 @@ export async function findPostById(id) {
   try {
     return await prisma.post.findUnique({
       where: { id: Number(id) },
-      include: {
+      // select를 사용해 authorId를 포함한 필요한 모든 필드를 명시합니다.
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        nickname: true,
+        view: true,
+        createdAt: true,
+        authorId: true, // 👈 프론트에서 '내 글' 판별을 위해 필수!
         comments: {
-          orderBy: { createdAt: 'asc' }, // 댓글도 시간순으로 정렬해서 가져옴
+          orderBy: { createdAt: 'asc' },
         },
         _count: {
-          select: { comments: true }, // 댓글이 총 몇 개인지도 계산
+          select: { comments: true },
         },
       },
     });
