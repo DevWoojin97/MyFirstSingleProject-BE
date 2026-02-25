@@ -1,5 +1,8 @@
 import { prisma } from '../lib/prisma.js';
-import { findAndCountAll } from '../repository/posts.repository.js';
+import {
+  findAndCountAll,
+  findPostById,
+} from '../repository/posts.repository.js';
 import {
   deleteSchema,
   postSchema,
@@ -91,50 +94,30 @@ export const getPost = async (req, res) => {
     const { id } = req.params;
     const postId = Number(id);
 
-    // 1. 게시글 찾기 + 댓글들(comments) 같이 불러오기
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
+    if (isNaN(postId)) {
+      return res.status(400).json({ message: '유효한 ID가 아닙니다.' });
+    }
 
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        nickname: true,
-        view: true, // 조회수도 보여줘야 하니 추가
-        createdAt: true,
-        authorId: true,
-        comments: {
-          where: { isDeleted: false },
-          orderBy: { createdAt: 'asc' },
-          select: {
-            id: true,
-            content: true,
-            nickname: true,
-            createdAt: true,
-            // password: false (댓글 비번도 숨기기)
-          },
-        },
-      },
-    });
+    // 1. 💡 직접 prisma 쓰지 말고, 공들여 만든 서비스 함수를 호출하세요!
+    const post = await findPostById(postId);
 
     if (!post) {
       return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
     }
 
-    // 2. 조회수 1 증가 (업데이트된 정보를 굳이 다시 변수에 담을 필요는 없음)
+    // 2. 조회수 증가는 그대로 둡니다.
     await prisma.post.update({
       where: { id: postId },
       data: { view: { increment: 1 } },
     });
 
-    // 3. 이제 post 안에는 comments 배열이 포함되어 있음!
+    // 3. 서비스 함수가 리턴한 post에는 이미 authorId가 포함되어 있습니다.
     res.json(post);
   } catch (error) {
     console.error('상세 조회 에러:', error);
     res.status(500).json({ message: '게시글 상세 조회 실패' });
   }
 };
-
 export const deletePost = async (req, res) => {
   try {
     const { id } = req.params;

@@ -58,7 +58,6 @@ export async function findAndCountAll({ page, limit, sort, order, search }) {
     throw error;
   }
 }
-
 export async function findPostById(id) {
   try {
     return await prisma.post.findUnique({
@@ -73,7 +72,15 @@ export async function findPostById(id) {
         createdAt: true,
         authorId: true, // 👈 프론트에서 '내 글' 판별을 위해 필수!
         comments: {
+          where: { isDeleted: false },
           orderBy: { createdAt: 'asc' },
+          select: {
+            id: true,
+            content: true,
+            nickname: true,
+            createdAt: true,
+            authorId: true,
+          },
         },
         _count: {
           select: { comments: true },
@@ -91,15 +98,31 @@ export async function findByPostId(postId) {
   return await prisma.comment.findMany({
     where: { postId: Number(postId) },
     orderBy: { createdAt: 'asc' }, // 댓글은 보통 등록순(오래된순)
+    select: {
+      id: true,
+      content: true,
+      nickname: true,
+      createdAt: true,
+      authorId: true, // 👈 여기서도 꼭 확인!
+    },
   });
-} // 2. 댓글 작성
-export async function create({ postId, content, nickname, password }) {
+}
+
+// 2. 댓글 작성
+export async function create({
+  postId,
+  content,
+  nickname,
+  password,
+  authorId,
+}) {
   return await prisma.comment.create({
     data: {
       postId: Number(postId),
       content,
       nickname,
       password,
+      authorId: authorId ? Number(authorId) : null,
     },
   });
 } // 3. 댓글 삭제 (비밀번호 확인용으로 id 조회 먼저 필요)

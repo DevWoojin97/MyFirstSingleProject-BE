@@ -17,6 +17,7 @@ export const authenticateToken = (req, res, next) => {
   // 3. 토큰이 있다면, 이게 진짜인지 유통기한은 안 지났는지 검사합니다.
   jwt.verify(token, JWT_SECRET, (err, decodedUser) => {
     if (err) {
+      console.log('토큰 검증 실패 이유:', err.message); // 👈 여기에 로그 추가
       // 가짜 토큰이거나 만료되었다면? (403: 금지됨)
       return res
         .status(403)
@@ -24,6 +25,7 @@ export const authenticateToken = (req, res, next) => {
     }
     // 4. 검증 성공! 토큰 안에 들어있던 유저 정보(id, role 등)를
     // req.user라는 주머니에 넣어줍니다. 이제 다음 함수에서 이걸 꺼내 쓸 수 있어요.
+    console.log('디코딩된 유저 정보:', decodedUser);
     req.user = decodedUser;
 
     // 5. 다음 단계(진짜 실행할 컨트롤러)로 넘어가라는 신호!

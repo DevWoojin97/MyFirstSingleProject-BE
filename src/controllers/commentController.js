@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 
 // 댓글 작성 API 로직
 export const createComment = async (req, res) => {
+  console.log('현재 로그인 유저 정보:', req.user);
   try {
     const { postId: paramPostId } = req.params;
     const postId = Number(paramPostId);
@@ -92,9 +93,12 @@ export const deleteComment = async (req, res) => {
 
     //권한 검증 (핵심 분기!)
     if (comment.authorId) {
-      // ✅ Case A: 회원 댓글
-      // 로그인 안 했거나, 로그인한 ID와 작성자 ID가 다르면 거부
-      if (!user || user.userId !== comment.authorId) {
+      const loggedInUserId = user?.id || user?.userId;
+
+      if (
+        !loggedInUserId ||
+        String(loggedInUserId) !== String(comment.authorId)
+      ) {
         return res
           .status(403)
           .json({ message: '본인의 댓글만 삭제할 수 있습니다.' });
