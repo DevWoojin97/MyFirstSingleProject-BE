@@ -37,8 +37,6 @@ export const getPosts = async (req, res) => {
 };
 // 게시글 생성
 export const createPost = async (req, res) => {
-  console.log('1. 요청 본문(body):', req.body);
-  console.log('2. 미들웨어가 준 유저(req.user):', req.user);
   // 데이터 유효성 검사
   const validation = postSchema.safeParse(req.body);
   if (!validation.success) {
@@ -64,7 +62,6 @@ export const createPost = async (req, res) => {
 
     // 💡 분기 처리 핵심!
     if (req.user) {
-      console.log('3. 회원 로직 진입! ID:', req.user.userId);
       // [회원일 때] : 토큰에서 나온 ID를 authorId에 연결
       postData.authorId = req.user.userId;
       // 회원은 익명 닉네임/비번이 필요 없으므로 비워두거나 회원 닉네임을 넣음
