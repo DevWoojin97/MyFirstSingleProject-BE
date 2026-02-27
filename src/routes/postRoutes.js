@@ -13,6 +13,11 @@ import { uploadImage } from '../controllers/imageController.js';
 import { authenticateToken } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
+
+// 📍 /api/posts/ping 으로 요청을 보낼 경우
+router.get('/ping', (req, res) => {
+  res.send('ok');
+});
 // --- 게시글 관련 ---
 router.get('/', getPosts); // GET /api/posts
 router.post('/', authenticateToken, createPost); // POST /api/posts
