@@ -1,8 +1,6 @@
 import { prisma } from '../lib/prisma.js';
-import {
-  findAndCountAll,
-  findPostById,
-} from '../repository/posts.repository.js';
+import * as postService from '../services/postService.js';
+import { findPostById } from '../repository/posts.repository.js';
 import {
   deleteSchema,
   postSchema,
@@ -15,26 +13,14 @@ export const getPosts = async (req, res) => {
     // 1. 클라이언트로부터 쿼리 파라미터 추출
     console.log('--- 요청 들어옴 ---');
     console.log('쿼리 파라미터:', req.query);
-    // 1. 숫자 형변환 추가 (404/500 에러의 주범 예방)
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-    const sort = req.query.sort || 'createdAt';
-    const order = req.query.order || 'desc';
-    const search = req.query.search || '';
 
-    // 2. 리포지토리 함수 호출
-    const result = await findAndCountAll({
-      page,
-      limit,
-      sort,
-      order,
-      search,
-    });
+    //2.비즈니스 로직은 서비스에게 호출
+    const result = await postService.getPosts(req.query);
 
     // 3. 성공 응답 (데이터와 페이지네이션 메타 정보 포함)
     res.status(200).json(result);
   } catch (error) {
-    console.error('getPosts Error:', error);
+    console.error('getPosts Controller Error:', error);
     res.status(500).json({ message: '게시글 조회 중 오류가 발생했습니다.' });
   }
 };
