@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import passport from 'passport'; // 1. passport 라이브러리 임포트
+import './config/passport.js'; // 2. 작성하신 passport 설정 파일 실행 (중요!)
 import postRoutes from './routes/postRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
@@ -23,6 +25,9 @@ app.use(
 // 'uploads' 폴더 안에 있는 파일들을 /uploads 라는 경로로 공개하겠다는 설정
 app.use('/uploads', express.static('uploads'));
 app.use(express.json());
+
+// 3. Passport 초기화 (라우터 연결 전에 넣어주세요)
+app.use(passport.initialize());
 
 // 라우터 연결
 app.use('/api/posts', postRoutes);
