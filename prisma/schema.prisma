@@ -15,12 +15,15 @@ enum Role {
 
 //유저 모델
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String // 암호화된 비밀번호
-  nickname  String   @unique
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  email        String?  @unique
+  password     String // 암호화된 비밀번호
+  nickname     String   @unique
+  profileImage String? // 프로필 사진 URL
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  googleId     String?  @unique
+  provider     String   @default("GOOGLE")
 
   posts    Post[]
   comments Comment[]

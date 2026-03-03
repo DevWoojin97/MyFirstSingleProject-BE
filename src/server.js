@@ -4,9 +4,10 @@ import cors from 'cors';
 import postRoutes from './routes/postRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import { env } from '../src/config/env.js';
 
 const app = express();
-const PORT = process.env.PORT || 5050;
+const PORT = env.PORT || 5050;
 
 app.use(
   cors({
@@ -30,4 +31,7 @@ app.use('/api/auth', authRoutes);
 
 app.listen(PORT, () => {
   console.log(`서버 실행 중: http://localhost:${PORT}`);
+  console.log(
+    `🔑 구글 클라이언트 ID 로드 상태: ${env.GOOGLE.ID ? '성공' : '실패'}`,
+  );
 });
