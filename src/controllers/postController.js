@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import * as postService from '../services/postService.js';
-import { findPostById } from '../repository/posts.repository.js';
+import { findPostById } from '../repository/postsRepository.js';
 import {
   deleteSchema,
   postSchema,

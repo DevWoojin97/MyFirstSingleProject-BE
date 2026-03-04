@@ -1,4 +1,4 @@
-import * as postRepository from '../repository/posts.repository.js';
+import * as postRepository from '../repository/postsRepository.js';
 
 export const getPosts = async (query) => {
   // 1. 데이터 가공 및 계산

@@ -9,6 +9,7 @@ export const extractGoogleProfile = (profile) => {
     provider: 'GOOGLE',
     googleId: profile.id,
     role: 'USER',
+    proxy: true,
   };
 };
 

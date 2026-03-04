@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
-import { authRepository } from '../repository/auth.repository.js';
+import { authRepository } from '../repository/authRepository.js';
 
 export const socialLogin = async (userProfile) => {
   // 1. 기존 유저인지 확인 (이메일 + 프로바이더 조합)
