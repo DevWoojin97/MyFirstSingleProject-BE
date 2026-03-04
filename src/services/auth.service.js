@@ -16,7 +16,7 @@ export const socialLogin = async (userProfile) => {
   // 3. 서비스 이용을 위한 JWT 토큰 발급
   const token = jwt.sign(
     {
-      id: user.id,
+      userId: user.id,
       email: user.email,
       role: user.role,
       provider: user.provider,
