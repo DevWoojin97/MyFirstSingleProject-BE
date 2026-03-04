@@ -25,7 +25,9 @@ router.get(
     const result = await authService.socialLogin(req.user);
 
     // 2. 서비스가 구워준 토큰을 들고 프론트로 리다이렉트
-    res.redirect(`${env.FRONTEND_URL}/login-success?token=${result.token}`);
+    res.redirect(
+      `${process.env.FRONTEND_URL}/login-success?token=${result.token}`,
+    );
   },
 );
 
