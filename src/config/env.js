@@ -1,15 +1,10 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-const envPath = path.join(process.cwd(), 'env', '.env.development');
-
-// 환경변수 로드
-const result = dotenv.config({ path: envPath });
-
-// 파일 로드 실패 시 가이드 제공
-if (result.error) {
-  console.error(`❌ [에러]: ${envPath} 파일을 찾을 수 없습니다!`);
-  console.error(`경로와 파일명이 'env/.env.development'인지 확인해주세요.`);
+// production이 아닐 때만 로컬 env 파일 로드
+if (process.env.NODE_ENV !== 'production') {
+  const envPath = path.join(process.cwd(), 'env', '.env.development');
+  dotenv.config({ path: envPath });
 }
 
 export const env = {
