@@ -41,8 +41,8 @@ export const createComment = async (req, res) => {
         data: {
           postId,
           content,
-          authorId: user ? user.userId : null, // 회원이면 ID 저장
-          nickname: user ? user.nickname : nickname, // 회원이면 유저 닉네임, 아니면 입력값
+          authorId: user ? user.id || user.userId : null,
+          nickname: user ? user.nickname || nickname : nickname,
           password: user ? null : hashedPassword, // 회원이면 null, 아니면 암호화된 비번
         },
       });

@@ -98,3 +98,15 @@ export const login = async (req, res) => {
     res.status(500).json({ message: '서버 에러가 발생했습니다' });
   }
 };
+export const getMe = async (req, res) => {
+  try {
+    // authenticateToken 미들웨어를 거치면 req.user에 유저 정보가 들어있음
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId || req.user.id },
+      select: { id: true, nickname: true, email: true }, // 비번 제외
+    });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: '유저 정보 로드 실패' });
+  }
+};

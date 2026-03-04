@@ -17,13 +17,13 @@ enum Role {
 model User {
   id           Int      @id @default(autoincrement())
   email        String?  @unique
-  password     String // 암호화된 비밀번호
+  password     String? // 암호화된 비밀번호
   nickname     String   @unique
   profileImage String? // 프로필 사진 URL
   role         Role     @default(USER)
   createdAt    DateTime @default(now())
   googleId     String?  @unique
-  provider     String   @default("GOOGLE")
+  provider     String   @default("LOCAL")
 
   posts    Post[]
   comments Comment[]

@@ -129,7 +129,7 @@ export const deletePost = async (req, res) => {
     if (post.authorId) {
       // 회원이 쓴 글인 경우
       // 미들웨어(req.user)의 ID와 DB의 authorId를 비교
-      const loggedInUserId = req.user?.userId;
+      const loggedInUserId = req.user?.id || req.user?.userId;
 
       // String으로 변환하여 안전하게 비교
       if (!loggedInUserId || String(loggedInUserId) !== String(post.authorId)) {
@@ -191,7 +191,7 @@ export const updatePost = async (req, res) => {
     // 4. 권한 검증 (회원 vs 비회원)
     if (post.authorId) {
       // [회원 게시글]
-      const loggedInUserId = req.user?.userId;
+      const loggedInUserId = req.user?.id || req.user?.userId;
 
       // 비교 시 String으로 형변환하여 안전하게 체크 (post.userId -> post.authorId로 수정)
       if (!loggedInUserId || String(loggedInUserId) !== String(post.authorId)) {

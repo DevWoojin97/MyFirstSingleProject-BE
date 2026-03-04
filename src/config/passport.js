@@ -1,26 +1,26 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { env } from './env.js';
+import * as authProvider from '../providers/auth.provider.js';
 
 passport.use(
   new GoogleStrategy(
     {
-      clientID: env.GOOGLE.ID, // 👈 env 객체 사용
-      clientSecret: env.GOOGLE.SECRET, // 👈 env 객체 사용
-      callbackURL: env.GOOGLE.CALLBACK, // 👈 env 객체 사용
+      clientID: env.GOOGLE.ID,
+      clientSecret: env.GOOGLE.SECRET,
+      callbackURL: env.GOOGLE.CALLBACK,
     },
     async (accessToken, refreshToken, profile, done) => {
-      //구글이 준 profile 정보를 정리해서 전달
-      const userProfile = {
-        email: profile.emails[0].value,
-        nickname: profile.displayName,
-        profileImage: profile.photos[0].value,
-        provider: 'GOOGLE',
-        googleId: profile.id,
-        role: 'USER',
-        password: null,
-      };
-      return done(null, userProfile);
+      try {
+        // 1. Provider를 통해 구글 정보를 우리 서비스 규격으로 정제
+        const userProfile = authProvider.extractGoogleProfile(profile);
+
+        // 2. 정제된 정보를 다음 단계(보통 Service)로 넘김
+        // (팁: 나중에 여기서 바로 authService.loginWithGoogle(userProfile)을 호출하게 됩니다!)
+        return done(null, userProfile);
+      } catch (error) {
+        return done(error, null);
+      }
     },
   ),
 );
