@@ -34,6 +34,7 @@ export const signup = async (req, res) => {
         email,
         password: hashedPassword,
         nickname,
+        provider: 'LOCAL',
       },
     });
 

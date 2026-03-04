@@ -21,6 +21,9 @@ export async function findAndCountAll({ where, orderBy, take, skip }) {
           view: true,
           createdAt: true,
           authorId: true,
+          author: {
+            select: { provider: true },
+          },
         },
       }),
       prisma.post.count({ where }),
@@ -45,6 +48,11 @@ export async function findPostById(id) {
         view: true,
         createdAt: true,
         authorId: true, // 👈 프론트에서 '내 글' 판별을 위해 필수!
+        author: {
+          select: {
+            provider: true, // 👈 유저의 가입 경로(GOOGLE, LOCAL)를 가져옵니다.
+          },
+        },
         comments: {
           where: { isDeleted: false },
           orderBy: { createdAt: 'asc' },
@@ -54,6 +62,7 @@ export async function findPostById(id) {
             nickname: true,
             createdAt: true,
             authorId: true,
+            author: { select: { provider: true } },
           },
         },
         _count: {

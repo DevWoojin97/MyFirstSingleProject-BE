@@ -18,6 +18,7 @@ export const socialLogin = async (userProfile) => {
     {
       userId: user.id,
       email: user.email,
+      nickname: user.nickname,
       role: user.role,
       provider: user.provider,
     },
