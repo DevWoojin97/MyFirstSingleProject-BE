@@ -6,6 +6,7 @@ import './config/passport.js'; // 2. 작성하신 passport 설정 파일 실행 
 import postRoutes from './routes/postRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import userRoute from './routes/userRoute.js';
 import { env } from '../src/config/env.js';
 
 const app = express();
@@ -33,6 +34,7 @@ app.use(passport.initialize());
 app.use('/api/posts', postRoutes);
 app.use('/api/posts', commentRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoute);
 
 app.listen(PORT, () => {
   console.log(`서버 실행 중: http://localhost:${PORT}`);
