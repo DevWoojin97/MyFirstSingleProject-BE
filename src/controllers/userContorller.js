@@ -28,3 +28,17 @@ export const getMyPosts = async (req, res) => {
     res.status(500).json({ success: false, message: '글 목록 로드 실패' });
   }
 };
+
+export const getMyComments = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const comments = await userService.getMyComments(userId);
+
+    res.status(200).json({
+      success: true,
+      data: comments,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: '댓글 목록 로드 실패' });
+  }
+};

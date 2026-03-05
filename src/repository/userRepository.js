@@ -61,3 +61,24 @@ export const getUserPosts = async (userId) => {
     },
   });
 };
+
+// 내 댓글 목록 가져오기
+export const getUserComments = async (userId) => {
+  return await prisma.comment.findMany({
+    where: {
+      authorId: userId,
+      isDeleted: false,
+    },
+    orderBy: {
+      createdAt: 'desc', // 최신순 정렬
+    },
+    include: {
+      post: {
+        select: {
+          id: true,
+          title: true,
+        },
+      },
+    },
+  });
+};

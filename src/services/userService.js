@@ -32,3 +32,15 @@ export const getMyPosts = async (userId) => {
     commentCount: post._count.comments,
   }));
 };
+
+export const getMyComments = async (userId) => {
+  const comments = await userRepository.getUserComments(userId);
+
+  return comments.map((comment) => ({
+    id: comment.id,
+    content: comment.content,
+    postId: comment.postId,
+    postTitle: comment.post?.title || '삭제된 게시글입니다.',
+    createdAt: comment.createdAt?.toISOString().split('T')[0] || '-',
+  }));
+};
