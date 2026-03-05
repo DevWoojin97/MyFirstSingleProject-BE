@@ -52,6 +52,7 @@ export const getUserPosts = async (userId) => {
     select: {
       id: true,
       title: true,
+      hasImage: true,
       createdAt: true,
       view: true,
       // 필요한 정보 추가 (조회수 등)

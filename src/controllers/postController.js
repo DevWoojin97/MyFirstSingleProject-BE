@@ -11,7 +11,6 @@ import {
 export const getPosts = async (req, res) => {
   try {
     // 1. 클라이언트로부터 쿼리 파라미터 추출
-    console.log('--- 요청 들어옴 ---');
     console.log('쿼리 파라미터:', req.query);
 
     //2.비즈니스 로직은 서비스에게 호출
