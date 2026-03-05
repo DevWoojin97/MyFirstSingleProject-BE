@@ -35,13 +35,16 @@ export const getMyPosts = async (req, res) => {
 export const getMyComments = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const comments = await userService.getMyComments(userId);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const result = await userService.getMyComments(userId, page, limit);
 
     res.status(200).json({
       success: true,
-      data: comments,
+      data: result,
     });
   } catch (error) {
+    console.error('내 댓글 로드 중 에러:', error);
     res.status(500).json({ success: false, message: '댓글 목록 로드 실패' });
   }
 };

@@ -37,23 +37,38 @@ export const getMyPosts = async (userId, page, limit = 10) => {
     commentCount: post._count.comments,
   }));
 
+  const totalPages = Math.ceil(totalCount / limit);
   // 3. 메인 페이지 getPosts 형식처럼 깔끔하게 묶어서 리턴합니다.
   return {
     posts: formattedPosts,
     totalCount,
-    totalPages: Math.ceil(totalCount / limit),
-    currentPage: page,  
+    totalPages,
+    currentPage: page,
   };
 };
 
-export const getMyComments = async (userId) => {
-  const comments = await userRepository.getUserComments(userId);
+export const getMyComments = async (userId, page, limit) => {
+  // 1. 레포지토리에서 Raw Data를 받아옴
+  const { comments, totalCount } = await userRepository.getUserComments(
+    userId,
+    page,
+    limit,
+  );
 
-  return comments.map((comment) => ({
+  // 2. 비즈니스 요구사항에 맞게 데이터 가공 (평탄화)
+  const formattedComments = comments.map((comment) => ({
     id: comment.id,
     content: comment.content,
-    postId: comment.postId,
-    postTitle: comment.post?.title || '삭제된 게시글입니다.',
-    createdAt: comment.createdAt?.toISOString().split('T')[0] || '-',
+    createdAt: comment.createdAt.toISOString().split('T')[0],
+    // 여기서 가공 로직 처리!
+    postTitle: comment.post?.title || '삭제된 게시글',
   }));
+
+  const totalPages = Math.ceil(totalCount / limit);
+
+  return {
+    comments: formattedComments,
+    totalPages,
+    totalCount,
+  };
 };
