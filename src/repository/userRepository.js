@@ -40,12 +40,18 @@ export const getUserActivityById = async (userId) => {
 };
 
 // 내 작성글 목록 가져오기
-export const getUserPosts = async (userId) => {
-  return await prisma.post.findMany({
+export const getUserPosts = async (userId, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+
+  const totalCount = await prisma.post.count({ where: { authorId: userId } });
+
+  const posts = await prisma.post.findMany({
     where: {
       authorId: userId, // 혹은 userId 필드명 확인
       // 게시글은 하드삭제라 하셨으니 isDeleted 조건은 생략
     },
+    skip: skip,
+    take: limit,
     orderBy: {
       createdAt: 'desc', // 최신순 정렬
     },
@@ -61,6 +67,7 @@ export const getUserPosts = async (userId) => {
       },
     },
   });
+  return { posts, totalCount };
 };
 
 // 내 댓글 목록 가져오기

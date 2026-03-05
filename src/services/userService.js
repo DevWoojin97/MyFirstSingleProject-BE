@@ -22,15 +22,28 @@ export const getMyPageData = async (userId) => {
     },
   };
 };
-export const getMyPosts = async (userId) => {
-  const posts = await userRepository.getUserPosts(userId);
+export const getMyPosts = async (userId, page, limit = 10) => {
+  // 1. 레포지토리에서 객체{ posts, totalCount }를 받아옵니다.
+  const { posts, totalCount } = await userRepository.getUserPosts(
+    userId,
+    page,
+    limit,
+  );
 
-  // 날짜 가공 (예: 2026-03-04 형태)
-  return posts.map((post) => ({
+  // 2. posts 배열 내부의 데이터만 가공합니다.
+  const formattedPosts = posts.map((post) => ({
     ...post,
     createdAt: post.createdAt.toISOString().split('T')[0],
     commentCount: post._count.comments,
   }));
+
+  // 3. 메인 페이지 getPosts 형식처럼 깔끔하게 묶어서 리턴합니다.
+  return {
+    posts: formattedPosts,
+    totalCount,
+    totalPages: Math.ceil(totalCount / limit),
+    currentPage: page,  
+  };
 };
 
 export const getMyComments = async (userId) => {
