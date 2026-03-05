@@ -23,7 +23,7 @@ export const socialLogin = async (userProfile) => {
       provider: user.provider,
     },
     env.JWT_SECRET, // 👈 .env에 추가해야 함!
-    { expiresIn: '1h' }, // 1시간 동안 유효
+    { expiresIn: '1d' }, // 하루 동안 유효
   );
 
   return { user, token };
