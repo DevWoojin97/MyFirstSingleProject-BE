@@ -60,6 +60,7 @@ export const getMyComments = async (userId, page, limit) => {
     id: comment.id,
     content: comment.content,
     createdAt: comment.createdAt.toISOString().split('T')[0],
+    postId: comment.post?.id,
     // 여기서 가공 로직 처리!
     postTitle: comment.post?.title || '삭제된 게시글',
   }));
