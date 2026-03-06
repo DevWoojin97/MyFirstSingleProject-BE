@@ -75,6 +75,17 @@ export async function findPostById(id) {
     throw error;
   }
 }
+export async function incrementView(id) {
+  try {
+    return await prisma.post.update({
+      where: { id },
+      data: { view: { increment: 1 } },
+    });
+  } catch (error) {
+    console.error('Increment View Error:', error);
+    throw error;
+  }
+}
 
 // 1. 특정 게시글의 모든 댓글 조회
 export async function findByPostId(postId) {

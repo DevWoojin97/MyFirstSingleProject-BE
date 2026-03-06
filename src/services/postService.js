@@ -38,3 +38,15 @@ export const getPosts = async (query) => {
     currentPage: page,
   };
 };
+
+export const getPostDetail = async (postId) => {
+  // 1. 게시글 데이터 가져오기 (Repository 호출)
+  const post = await postRepository.findPostById(postId);
+
+  // 2. 게시글이 존재할 때만 조회수 증가 (비즈니스 로직)
+  if (post) {
+    await postRepository.incrementView(postId);
+  }
+
+  return post;
+};

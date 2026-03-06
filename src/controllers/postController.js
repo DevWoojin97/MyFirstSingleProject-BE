@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import * as postService from '../services/postService.js';
-import { findPostById } from '../repository/postsRepository.js';
+
 import {
   deleteSchema,
   postSchema,
@@ -79,24 +79,19 @@ export const getPost = async (req, res) => {
     const { id } = req.params;
     const postId = Number(id);
 
+    // 1. 유효성 검사 (입력값 체크)
     if (isNaN(postId)) {
       return res.status(400).json({ message: '유효한 ID가 아닙니다.' });
     }
 
-    // 1. 💡 직접 prisma 쓰지 말고, 공들여 만든 서비스 함수를 호출하세요!
-    const post = await findPostById(postId);
+    // 2. 비즈니스 로직 호출 (Service 계층)
+    const post = await postService.getPostDetail(postId);
 
+    // 3. 결과에 따른 응답 처리
     if (!post) {
       return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
     }
 
-    // 2. 조회수 증가는 그대로 둡니다.
-    await prisma.post.update({
-      where: { id: postId },
-      data: { view: { increment: 1 } },
-    });
-
-    // 3. 서비스 함수가 리턴한 post에는 이미 authorId가 포함되어 있습니다.
     res.json(post);
   } catch (error) {
     console.error('상세 조회 에러:', error);
