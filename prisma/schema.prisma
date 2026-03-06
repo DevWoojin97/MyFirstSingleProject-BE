@@ -32,9 +32,9 @@ model User {
 // 3. 게시글 모델 (설계도)
 model Post {
   id        Int      @id @default(autoincrement())
-  title     String
+  title     String   @db.VarChar(50)
   content   String   @db.Text
-  nickname  String?
+  nickname  String?  @db.VarChar(8)
   password  String?
   view      Int      @default(0)
   createdAt DateTime @default(now())
