@@ -54,9 +54,9 @@ model Post {
 
 model Comment {
   id        Int      @id @default(autoincrement())
-  content   String   @db.Text
-  nickname  String
-  password  String?
+  content   String   @db.VarChar(300)
+  nickname  String   @db.VarChar(8)
+  password  String?  @db.VarChar(8)
   createdAt DateTime @default(now())
 
   isDeleted Boolean   @default(false) // 삭제 여부 상태값

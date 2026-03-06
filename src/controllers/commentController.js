@@ -1,59 +1,62 @@
+import { commentSchema } from '../schemas/commentSchema.js';
 import { prisma } from '../lib/prisma.js';
 import bcrypt from 'bcrypt';
 
 // 댓글 작성 API 로직
 export const createComment = async (req, res) => {
-  console.log('현재 로그인 유저 정보:', req.user);
+  // 1. 데이터 유효성 검사 (Zod)
+  const validation = commentSchema.safeParse(req.body);
+  if (!validation.success) {
+    return res.status(400).json({
+      message: validation.error.errors[0].message,
+    });
+  }
+
   try {
     const { postId: paramPostId } = req.params;
     const postId = Number(paramPostId);
-
-    const { nickname, password, content } = req.body; // 프론트에서 보낸 데이터
-
-    // 💡 로그인 여부 확인 (미들웨어에서 토큰 검증 후 넣어줌) 있으면 회원, 없으면 익명
+    const { nickname, password, content } = validation.data;
     const user = req.user;
 
-    // 1. postId가 정상적인 숫자인지 체크
     if (isNaN(postId)) {
       return res.status(400).json({ message: '유효한 게시글 ID가 아닙니다.' });
     }
 
-    // 2. 필수 값 체크 (선택사항이지만 추천)
-    if (!content) {
-      return res.status(400).json({ message: '내용을 입력해주세요.' });
+    // 2. 비회원/회원 데이터 분기 설정
+    let commentData = {
+      postId,
+      content,
+    };
+
+    if (user) {
+      // [회원일 때]
+      commentData.authorId = user.id || user.userId;
+      commentData.nickname = user.nickname || '회원';
+      commentData.password = null; // 회원은 비밀번호 불필요
+    } else {
+      // [비회원(익명)일 때]
+      if (!nickname || !password) {
+        return res
+          .status(400)
+          .json({ message: '닉네임과 비밀번호를 입력해주세요.' });
+      }
+      // 비밀번호 암호화
+      const hashedPassword = await bcrypt.hash(password, 10);
+      commentData.authorId = null;
+      commentData.nickname = nickname;
+      commentData.password = hashedPassword;
     }
 
-    // 익명인데 닉네임이나 비번이 없는 경우 체크
-    if (!user && (!nickname || !password)) {
-      return res
-        .status(400)
-        .json({ message: '닉네임과 비밀번호를 입력해주세요.' });
-    }
-    //  비회원일 때만 비밀번호 암호화 진행
-    let hashedPassword = null;
-    if (!user && password) {
-      hashedPassword = await bcrypt.hash(password, 10);
-    }
-
+    // 3. 트랜잭션 실행 (댓글 생성 + 카운트 증가)
     const result = await prisma.$transaction(async (tx) => {
-      // DB에 댓글 생성
       const newComment = await tx.comment.create({
-        data: {
-          postId,
-          content,
-          authorId: user ? user.id || user.userId : null,
-          nickname: user ? user.nickname || nickname : nickname,
-          password: user ? null : hashedPassword, // 회원이면 null, 아니면 암호화된 비번
-        },
+        data: commentData,
       });
 
-      // 게시글 댓글 수 증가
       await tx.post.update({
         where: { id: postId },
         data: {
-          commentCount: {
-            increment: 1,
-          },
+          commentCount: { increment: 1 },
         },
       });
 
