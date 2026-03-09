@@ -2,7 +2,31 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { authRepository } from '../repository/authRepository.js';
 import bcrypt from 'bcrypt';
-import { prisma } from '../lib/prisma.js';
+
+// 회원가입 로직
+export const signup = async ({ email, password, nickname }) => {
+  // 1. 중복 확인
+  const existingUser = await authRepository.findByEmailOrNickname(
+    email,
+    nickname,
+  );
+  if (existingUser) {
+    throw new Error('ALREADY_EXISTS');
+  }
+
+  // 2. 비밀번호 암호화
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // 3. DB 저장
+  const newUser = await authRepository.createUser({
+    email,
+    password: hashedPassword,
+    nickname,
+    provider: 'LOCAL',
+  });
+
+  return newUser;
+};
 
 export const socialLogin = async (userProfile) => {
   // 1. 기존 유저인지 확인 (이메일 + 프로바이더 조합)
@@ -32,9 +56,8 @@ export const socialLogin = async (userProfile) => {
 };
 
 export const localLogin = async (email, password) => {
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+  // 1. 유저 존재 확인 (로컬 유저이므로 provider 생략하거나 findByEmailOrNickname 재사용 가능)
+  const user = await authRepository.findByEmailOrNickname(email, '');
   // 1. 유저 존재 확인
   if (!user) {
     throw new Error('USER_NOT_FOUND');
@@ -57,4 +80,14 @@ export const localLogin = async (email, password) => {
     { expiresIn: '1d' },
   );
   return { user, token };
+};
+
+export const getUserProfile = async (userId) => {
+  const user = await authRepository.findById(userId);
+
+  if (!user) {
+    throw new Error('USER_NOT_FOUND');
+  }
+
+  return user;
 };

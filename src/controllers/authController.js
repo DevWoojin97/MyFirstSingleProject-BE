@@ -12,38 +12,23 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: '모든 필드를 입력해 주세요.' });
     }
 
-    // 2. 이메일 또는 닉네임 중복 확인
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ email }, { nickname }],
-      },
-    });
-
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ message: '이미 사용 중인 이메일 또는 닉네임입니다.' });
-    }
-
-    // 3. 비밀번호 암호화
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // 4. DB 저장(Role은 스키마 설정에 따라 자동으로 'USER' 가 됨)
-    const newUser = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        nickname,
-        provider: 'LOCAL',
-      },
-    });
+    const newUser = await authService.signup({ email, password, nickname });
 
     res.status(201).json({
       message: '회원가입이 성공적으로 완료되었습니다!',
       userId: newUser.id,
     });
   } catch (error) {
-    console.error('Signup Error:', error);
+    // 💡 에러 분기 처리 추가
+    if (error.message === 'ALREADY_EXISTS') {
+      // 서비스에서 throw new Error('ALREADY_EXISTS')를 던졌을 때 처리
+      return res.status(400).json({
+        message: '이미 사용 중인 이메일 또는 닉네임입니다.',
+      });
+    }
+
+    // 그 외 예상치 못한 에러 (DB 연결 실패 등)
+    console.error('Signup Controller Error:', error);
     res.status(500).json({ message: '서버 에러가 발생했습니다.' });
   }
 };
@@ -79,15 +64,22 @@ export const login = async (req, res) => {
     res.status(500).json({ message: '서버 에러가 발생했습니다' });
   }
 };
+
 export const getMe = async (req, res) => {
   try {
-    // authenticateToken 미들웨어를 거치면 req.user에 유저 정보가 들어있음
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.userId || req.user.id },
-      select: { id: true, nickname: true, email: true }, // 비번 제외
-    });
+    // 1. 미들웨어에서 뽑아준 ID 추출
+    const userId = req.user.userId || req.user.id;
+
+    // 2. 서비스 호출 (직접 prisma 조회 X)
+    const user = await authService.getUserProfile(userId);
+
+    // 3. 응답
     res.json(user);
   } catch (error) {
+    if (error.message === 'USER_NOT_FOUND') {
+      return res.status(404).json({ message: '유저를 찾을 수 없습니다.' });
+    }
+    console.error('getMe Error:', error);
     res.status(500).json({ message: '유저 정보 로드 실패' });
   }
 };
