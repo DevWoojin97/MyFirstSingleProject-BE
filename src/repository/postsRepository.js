@@ -147,3 +147,11 @@ export async function remove(id) {
     where: { id: Number(id) },
   });
 }
+
+// 게시글 수정
+export async function updatePost(id, data) {
+  return await prisma.post.update({
+    where: { id: Number(id) },
+    data,
+  });
+}

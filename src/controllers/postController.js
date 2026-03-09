@@ -155,49 +155,24 @@ export const updatePost = async (req, res) => {
       });
     }
 
-    // 검증된 데이터 추출
-    const { title, content, password } = validation.data;
-    const hasImage = content.includes('<img');
-
-    // 3. 게시글 존재 확인
-    const post = await prisma.post.findUnique({ where: { id: postId } });
-
-    if (!post) {
-      return res.status(404).json({ message: '글을 찾을 수 없습니다.' });
-    }
-
-    // 4. 권한 검증 (회원 vs 비회원)
-    if (post.authorId) {
-      // [회원 게시글]
-      const loggedInUserId = req.user?.id || req.user?.userId;
-
-      // 비교 시 String으로 형변환하여 안전하게 체크 (post.userId -> post.authorId로 수정)
-      if (!loggedInUserId || String(loggedInUserId) !== String(post.authorId)) {
-        return res
-          .status(403)
-          .json({ message: '본인의 글만 수정할 수 있습니다.' });
-      }
-      // 회원은 비밀번호 검사 없이 통과
-    } else {
-      // [익명 게시글] 비밀번호 대조
-      const isMatch = await bcrypt.compare(password, post.password);
-      if (!isMatch) {
-        return res.status(401).json({ message: '비밀번호가 틀렸습니다.' });
-      }
-    }
-
-    // 5. 실제 수정 업데이트
-    const updatedPost = await prisma.post.update({
-      where: { id: postId },
-      data: {
-        title: title.trim(),
-        content: content.trim(),
-        hasImage,
-      },
-    });
+    // 3. 서비스 호출
+    const updatedPost = await postService.updatePost(
+      postId,
+      validation.data,
+      req.user,
+    );
 
     res.json(updatedPost);
   } catch (error) {
+    if (error.message === 'POST_NOT_FOUND') {
+      return res.status(404).json({ message: '글을 찾을 수 없습니다.' });
+    } else if (error.message === 'FORBIDDEN') {
+      return res
+        .status(403)
+        .json({ message: '본인의 글만 수정할 수 있습니다.' });
+    } else if (error.message === 'INVALID_PASSWORD') {
+      return res.status(401).json({ message: '비밀번호가 틀렸습니다.' });
+    }
     console.error('Update Error:', error);
     res.status(500).json({ message: '수정 실패' });
   }

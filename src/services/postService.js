@@ -84,3 +84,38 @@ export const deletePost = async (postId, password, user) => {
   // 3. 실제 삭제
   return await postRepository.removePost(postId);
 };
+
+export const updatePost = async (postId, dto, user) => {
+  const { title, content, password } = dto;
+
+  // 1. 게시글 존재 확인 (비밀번호 비교를 위해 전체 필드 조회 필요)
+  // findPostForDelete가 모든 필드를 반환하므로 재사용 가능
+  const post = await postRepository.findPostForDelete(postId);
+
+  if (!post) {
+    throw new Error('POST_NOT_FOUND');
+  }
+
+  // 2. 권한 검증
+  if (post.authorId) {
+    // [회원 게시글]
+    const loggedInUserId = user?.id || user?.userId;
+    if (!loggedInUserId || String(loggedInUserId) !== String(post.authorId)) {
+      throw new Error('FORBIDDEN');
+    }
+  } else {
+    // [익명 게시글]
+    const isMatch = await bcrypt.compare(password, post.password);
+    if (!isMatch) {
+      throw new Error('INVALID_PASSWORD');
+    }
+  }
+
+  // 3. 데이터 가공 및 업데이트
+  const hasImage = content.includes('<img');
+  return await postRepository.updatePost(postId, {
+    title: title.trim(),
+    content: content.trim(),
+    hasImage,
+  });
+};
