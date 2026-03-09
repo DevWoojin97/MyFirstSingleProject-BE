@@ -2,6 +2,7 @@ import {
   commentSchema,
   deleteCommentSchema,
 } from '../schemas/commentSchema.js';
+import * as commentService from '../services/commentService.js';
 import { prisma } from '../lib/prisma.js';
 import bcrypt from 'bcrypt';
 
@@ -18,57 +19,26 @@ export const createComment = async (req, res) => {
   try {
     const { postId: paramPostId } = req.params;
     const postId = Number(paramPostId);
-    const { nickname, password, content } = validation.data;
     const user = req.user;
 
     if (isNaN(postId)) {
       return res.status(400).json({ message: '유효한 게시글 ID가 아닙니다.' });
     }
-
-    // 2. 비회원/회원 데이터 분기 설정
-    let commentData = {
+    const result = await commentService.createComment(
       postId,
-      content,
-    };
-
-    if (user) {
-      // [회원일 때]
-      commentData.authorId = user.id || user.userId;
-      commentData.nickname = user.nickname || '회원';
-      commentData.password = null; // 회원은 비밀번호 불필요
-    } else {
-      // [비회원(익명)일 때]
-      if (!nickname || !password) {
-        return res
-          .status(400)
-          .json({ message: '닉네임과 비밀번호를 입력해주세요.' });
-      }
-      // 비밀번호 암호화
-      const hashedPassword = await bcrypt.hash(password, 10);
-      commentData.authorId = null;
-      commentData.nickname = nickname;
-      commentData.password = hashedPassword;
-    }
-
-    // 3. 트랜잭션 실행 (댓글 생성 + 카운트 증가)
-    const result = await prisma.$transaction(async (tx) => {
-      const newComment = await tx.comment.create({
-        data: commentData,
-      });
-
-      await tx.post.update({
-        where: { id: postId },
-        data: {
-          commentCount: { increment: 1 },
-        },
-      });
-
-      return newComment;
-    });
-
+      validation.data,
+      user,
+    );
     res.status(201).json(result);
   } catch (error) {
-    console.error('댓글 등록 에러:', error);
+    // 에러 분기 처리
+    if (error.message === 'NICKNAME_PASSWORD_REQUIRED') {
+      return res
+        .status(400)
+        .json({ message: '닉네임과 비밀번호를 입력해주세요.' });
+    }
+
+    console.error('댓글 등록 컨트롤러 에러:', error);
     res.status(500).json({ message: '댓글 등록 중 서버 에러가 발생했습니다.' });
   }
 };
