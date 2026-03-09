@@ -54,4 +54,21 @@ export const commentRepository = {
       });
     });
   },
+
+  // 게시글 ID로 모든 댓글 조회
+  findByPostId: async (postId) => {
+    return await prisma.comment.findMany({
+      where: { postId: Number(postId), isDeleted: false },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        content: true,
+        nickname: true,
+        createdAt: true,
+        authorId: true,
+        // 댓글 작성자의 소셜 로그인 여부도 확인하면 좋음
+        author: { select: { provider: true } },
+      },
+    });
+  },
 };

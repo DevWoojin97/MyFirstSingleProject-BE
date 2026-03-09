@@ -87,39 +87,6 @@ export async function incrementView(id) {
   }
 }
 
-// 1. 특정 게시글의 모든 댓글 조회
-export async function findByPostId(postId) {
-  return await prisma.comment.findMany({
-    where: { postId: Number(postId) },
-    orderBy: { createdAt: 'asc' }, // 댓글은 보통 등록순(오래된순)
-    select: {
-      id: true,
-      content: true,
-      nickname: true,
-      createdAt: true,
-      authorId: true, // 👈 여기서도 꼭 확인!
-    },
-  });
-}
-
-// 2. 댓글 작성
-export async function create({
-  postId,
-  content,
-  nickname,
-  password,
-  authorId,
-}) {
-  return await prisma.comment.create({
-    data: {
-      postId: Number(postId),
-      content,
-      nickname,
-      password,
-      authorId: authorId ? Number(authorId) : null,
-    },
-  });
-}
 // 삭제를 위해 모든 필드(비밀번호 포함)를 가져오는 전용 함수
 export async function findPostForDelete(id) {
   return await prisma.post.findUnique({
@@ -131,19 +98,6 @@ export async function findPostForDelete(id) {
 // 실제 게시글 삭제
 export async function removePost(id) {
   return await prisma.post.delete({
-    where: { id: Number(id) },
-  });
-}
-
-// 3. 댓글 삭제 (비밀번호 확인용으로 id 조회 먼저 필요)
-export async function findById(id) {
-  return await prisma.comment.findUnique({
-    where: { id: Number(id) },
-  });
-}
-
-export async function remove(id) {
-  return await prisma.comment.delete({
     where: { id: Number(id) },
   });
 }
