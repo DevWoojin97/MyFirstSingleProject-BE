@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import * as postService from '../services/postService.js';
+import bcrypt from 'bcrypt';
 
 import {
   deleteSchema,
@@ -58,7 +59,7 @@ export const createPost = async (req, res) => {
     } else {
       // [익명일 때] : 프론트에서 보낸 닉네임과 비번 저장
       postData.nickname = nickname;
-      postData.password = password;
+      postData.password = await bcrypt.hash(password, 10);
       // authorId는 Prisma 스키마에서 Int? (Optional)여야 합니다.
     }
 
@@ -98,6 +99,8 @@ export const getPost = async (req, res) => {
     res.status(500).json({ message: '게시글 상세 조회 실패' });
   }
 };
+
+//게시글 삭제
 export const deletePost = async (req, res) => {
   try {
     const { id } = req.params;
@@ -110,42 +113,23 @@ export const deletePost = async (req, res) => {
         .json({ message: '유효하지 않은 게시글 ID입니다.' });
     }
 
-    // 1. 게시글 조회
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
-    });
+    await postService.deletePost(postId, password, req.user);
 
-    if (!post) {
-      return res.status(404).json({ message: '존재하지 않는 게시글입니다.' });
-    }
-
-    // 2. 권한 검증 (스키마 필드명 authorId 사용)
-    if (post.authorId) {
-      // 회원이 쓴 글인 경우
-      // 미들웨어(req.user)의 ID와 DB의 authorId를 비교
-      const loggedInUserId = req.user?.id || req.user?.userId;
-
-      // String으로 변환하여 안전하게 비교
-      if (!loggedInUserId || String(loggedInUserId) !== String(post.authorId)) {
-        return res
-          .status(403)
-          .json({ message: '본인의 글만 삭제할 수 있습니다.' });
-      }
-    } else {
-      // 익명 사용자가 쓴 글인 경우
-      const validation = deleteSchema.safeParse(req.body);
-      if (!validation.success) {
-        return res.status(400).json({ message: '비밀번호를 입력해주세요.' });
-      }
-      if (post.password !== password) {
-        return res.status(401).json({ message: '비밀번호가 틀렸습니다.' });
-      }
-    }
-
-    // 3. 실제 삭제
-    await prisma.post.delete({ where: { id: postId } });
     res.json({ message: '성공적으로 삭제되었습니다.' });
   } catch (error) {
+    // 서비스에서 던진 에러 메시지에 따른 분기 처리
+    if (error.message === 'POST_NOT_FOUND') {
+      return res.status(404).json({ message: '존재하지 않는 게시글입니다.' });
+    }
+    if (error.message === 'FORBIDDEN') {
+      return res
+        .status(403)
+        .json({ message: '본인의 글만 삭제할 수 있습니다.' });
+    }
+    if (error.message === 'INVALID_PASSWORD') {
+      return res.status(401).json({ message: '비밀번호가 틀렸습니다.' });
+    }
+
     console.error('Delete Error:', error);
     res.status(500).json({ message: '서버 오류로 삭제 실패' });
   }
@@ -196,7 +180,8 @@ export const updatePost = async (req, res) => {
       // 회원은 비밀번호 검사 없이 통과
     } else {
       // [익명 게시글] 비밀번호 대조
-      if (post.password !== password) {
+      const isMatch = await bcrypt.compare(password, post.password);
+      if (!isMatch) {
         return res.status(401).json({ message: '비밀번호가 틀렸습니다.' });
       }
     }
@@ -227,7 +212,8 @@ export const verifyPassword = async (req, res) => {
     const post = await prisma.post.findUnique({
       where: { id: Number(id) },
     });
-    if (post.password === password) {
+    const isMatch = await bcrypt.compare(password, post.password);
+    if (isMatch) {
       return res.status(200).json({ message: '비밀번호가 일치합니다.' });
     } else {
       return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });

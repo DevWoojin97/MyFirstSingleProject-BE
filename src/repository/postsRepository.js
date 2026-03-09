@@ -119,7 +119,23 @@ export async function create({
       authorId: authorId ? Number(authorId) : null,
     },
   });
-} // 3. 댓글 삭제 (비밀번호 확인용으로 id 조회 먼저 필요)
+}
+// 삭제를 위해 모든 필드(비밀번호 포함)를 가져오는 전용 함수
+export async function findPostForDelete(id) {
+  return await prisma.post.findUnique({
+    where: { id: Number(id) },
+    // select를 쓰지 않거나 password를 명시적으로 포함해야 비교가 가능합니다.
+  });
+}
+
+// 실제 게시글 삭제
+export async function removePost(id) {
+  return await prisma.post.delete({
+    where: { id: Number(id) },
+  });
+}
+
+// 3. 댓글 삭제 (비밀번호 확인용으로 id 조회 먼저 필요)
 export async function findById(id) {
   return await prisma.comment.findUnique({
     where: { id: Number(id) },
