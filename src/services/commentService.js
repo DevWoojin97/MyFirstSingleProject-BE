@@ -31,3 +31,42 @@ export const createComment = async (postId, commentBody, user) => {
   // 2. DB 저장 요청 (트랜잭션 포함)
   return await commentRepository.createWithTransaction(commentData);
 };
+
+export const deleteComment = async (commentId, password, user) => {
+  // 1. 댓글 존재 확인
+  const comment = await commentRepository.findById(commentId);
+
+  if (!comment) {
+    throw new Error('COMMENT_NOT_FOUND');
+  }
+  if (comment.isDeleted) {
+    throw new Error('ALREADY_DELETED');
+  }
+
+  // 2. 권한 검증
+  if (comment.authorId) {
+    // [회원 댓글]
+    const loggedInUserId = user?.id || user?.userId;
+    if (
+      !loggedInUserId ||
+      String(loggedInUserId) !== String(comment.authorId)
+    ) {
+      throw new Error('FORBIDDEN');
+    }
+  } else {
+    // [비회원 댓글]
+    if (!password) {
+      throw new Error('PASSWORD_REQUIRED');
+    }
+    const isMatch = await bcrypt.compare(password, comment.password);
+    if (!isMatch) {
+      throw new Error('INVALID_PASSWORD');
+    }
+  }
+
+  // 3. 트랜잭션 실행
+  return await commentRepository.removeWithTransaction(
+    comment.id,
+    comment.postId,
+  );
+};

@@ -25,4 +25,33 @@ export const commentRepository = {
   create: async (data) => {
     return await prisma.comment.create({ data });
   },
+
+  // 댓글 상세 조회 (비밀번호/삭제여부 포함)
+  findById: async (id) => {
+    return await prisma.comment.findUnique({
+      where: { id: Number(id) },
+    });
+  },
+
+  // 댓글 Soft Delete 및 게시글 댓글 수 감소 (트랜잭션)
+  removeWithTransaction: async (commentId, postId) => {
+    return await prisma.$transaction(async (tx) => {
+      // 1. 댓글 상태 업데이트
+      await tx.comment.update({
+        where: { id: commentId },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+        },
+      });
+
+      // 2. 게시글 댓글 수 감소
+      await tx.post.update({
+        where: { id: postId },
+        data: {
+          commentCount: { decrement: 1 },
+        },
+      });
+    });
+  },
 };
