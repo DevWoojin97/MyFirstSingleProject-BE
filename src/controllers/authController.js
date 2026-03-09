@@ -1,5 +1,3 @@
-import { prisma } from '../lib/prisma.js';
-import bcrypt from 'bcrypt';
 import * as authService from '../services/authService.js';
 
 //회원가입 로직

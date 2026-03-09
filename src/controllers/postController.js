@@ -1,6 +1,4 @@
-import { prisma } from '../lib/prisma.js';
 import * as postService from '../services/postService.js';
-import bcrypt from 'bcrypt';
 
 import {
   deleteSchema,
@@ -153,16 +151,15 @@ export const verifyPassword = async (req, res) => {
     const { id } = req.params;
     const { password } = req.body;
 
-    const post = await prisma.post.findUnique({
-      where: { id: Number(id) },
-    });
-    const isMatch = await bcrypt.compare(password, post.password);
+    const isMatch = await postService.verifyPassword(Number(id), password);
+
     if (isMatch) {
       return res.status(200).json({ message: '비밀번호가 일치합니다.' });
     } else {
       return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
     }
   } catch (error) {
+    console.error('Verify Password Error:', error);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };

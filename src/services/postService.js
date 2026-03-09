@@ -147,3 +147,11 @@ export const createPost = async (dto, user) => {
 
   return await postRepository.createPost(postData);
 };
+
+export const verifyPassword = async (postId, password) => {
+  const post = await postRepository.findPostForDelete(postId);
+  if (!post) {
+    return false;
+  }
+  return await bcrypt.compare(password, post.password);
+};
