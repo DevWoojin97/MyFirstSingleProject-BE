@@ -1,4 +1,7 @@
-import { commentSchema } from '../schemas/commentSchema.js';
+import {
+  commentSchema,
+  deleteCommentSchema,
+} from '../schemas/commentSchema.js';
 import { prisma } from '../lib/prisma.js';
 import bcrypt from 'bcrypt';
 
@@ -108,9 +111,12 @@ export const deleteComment = async (req, res) => {
       }
     } else {
       // ✅ Case B: 비회원 댓글
-      // 4. 비밀번호가 입력되었는지(빈 문자열은 아닌지) 확인합니다.
-      if (!password || typeof password !== 'string' || password.trim() === '') {
-        return res.status(400).json({ message: '비밀번호를 입력해주세요.' });
+      // 4. 스키마를 사용하여 비밀번호 입력 여부 검증
+      const validation = deleteCommentSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res
+          .status(400)
+          .json({ message: validation.error.errors[0].message });
       }
       // 비밀번호 비교
       const isMatch = await bcrypt.compare(password, comment.password);
