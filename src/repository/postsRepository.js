@@ -155,3 +155,10 @@ export async function updatePost(id, data) {
     data,
   });
 }
+
+// 게시글 생성
+export async function createPost(data) {
+  return await prisma.post.create({
+    data,
+  });
+}

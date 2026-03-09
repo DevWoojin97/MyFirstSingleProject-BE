@@ -119,3 +119,31 @@ export const updatePost = async (postId, dto, user) => {
     hasImage,
   });
 };
+
+export const createPost = async (dto, user) => {
+  const { title, content, nickname, password } = dto;
+
+  // content를 확인해서 이미지 포함 여부 결정
+  const hasImage = content.includes('<img');
+
+  const postData = {
+    title,
+    content,
+    hasImage,
+    nickname: nickname || null,
+    password: password || null,
+  };
+
+  if (user) {
+    // [회원일 때]
+    postData.authorId = user.userId || user.id;
+    postData.nickname = user.nickname || '회원';
+    postData.password = ''; // 회원 글은 비번 필요 없음
+  } else {
+    // [익명일 때]
+    postData.nickname = nickname;
+    postData.password = await bcrypt.hash(password, 10);
+  }
+
+  return await postRepository.createPost(postData);
+};

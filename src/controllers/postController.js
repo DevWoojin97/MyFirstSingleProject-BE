@@ -33,44 +33,13 @@ export const createPost = async (req, res) => {
       message: validation.error.errors[0].message,
     });
   }
-  // 검증된 데이터 꺼내기
-  const { title, content, nickname, password } = validation.data;
-
-  // content를 확인해서 이미지 포함 여부 결정 (여기서 직접 생성)
-  const hasImage = content.includes('<img');
 
   try {
-    // 공통 데이터 설정
-    const postData = {
-      title,
-      content,
-      hasImage,
-      nickname: nickname || null,
-      password: password || null,
-    };
-
-    // 💡 분기 처리 핵심!
-    if (req.user) {
-      // [회원일 때] : 토큰에서 나온 ID를 authorId에 연결
-      postData.authorId = req.user.userId;
-      // 회원은 익명 닉네임/비번이 필요 없으므로 비워두거나 회원 닉네임을 넣음
-      postData.nickname = req.user.nickname || '회원';
-      postData.password = ''; // 회원 글은 비번 필요 없음 (회원 정보로 삭제하니까)
-    } else {
-      // [익명일 때] : 프론트에서 보낸 닉네임과 비번 저장
-      postData.nickname = nickname;
-      postData.password = await bcrypt.hash(password, 10);
-      // authorId는 Prisma 스키마에서 Int? (Optional)여야 합니다.
-    }
-
-    //DB에 저장할 때 hasImage 필드도 포함
-    //핵심 로직 : 로그인 유저인가? 익명 유저인가?
-    const newPost = await prisma.post.create({
-      data: postData,
-    });
+    // 비즈니스 로직은 Service로 위임
+    const newPost = await postService.createPost(validation.data, req.user);
     res.status(201).json(newPost);
   } catch (error) {
-    console.error('DB Error:', error);
+    console.error('Create Post Error:', error);
     res.status(500).json({ message: '게시글 작성 실패' });
   }
 };
