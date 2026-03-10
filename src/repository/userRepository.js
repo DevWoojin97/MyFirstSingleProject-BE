@@ -15,11 +15,10 @@ export const getUserActivityById = async (userId) => {
       _count: {
         select: {
           posts: true, // 하드 삭제되므로 바로 카운트
+          comments: {
+            where: { isDeleted: false },
+          },
         },
-      },
-      comments: {
-        where: { isDeleted: false }, // 소프트 삭제 필터링
-        select: { id: true },
       },
     },
   });
@@ -28,15 +27,7 @@ export const getUserActivityById = async (userId) => {
   if (!user) return null;
 
   // 3. 데이터를 가공하여 최종 리턴합니다.
-  return {
-    ...user,
-    _count: {
-      posts: user._count.posts,
-      comments: user.comments.length, // 필터링된 댓글 리스트의 길이를 개수로 치환
-    },
-    // 가공에 쓴 원본 comments 배열은 프론트에 보낼 필요 없으니 제외 (선택 사항)
-    comments: undefined,
-  };
+  return user;
 };
 
 // 내 작성글 목록 가져오기

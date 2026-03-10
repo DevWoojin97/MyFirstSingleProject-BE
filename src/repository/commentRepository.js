@@ -21,11 +21,6 @@ export const commentRepository = {
     });
   },
 
-  // (참고) 단순히 댓글만 생성할 때 (트랜잭션 미사용 시)
-  create: async (data) => {
-    return await prisma.comment.create({ data });
-  },
-
   // 댓글 상세 조회 (비밀번호/삭제여부 포함)
   findById: async (id) => {
     return await prisma.comment.findUnique({
